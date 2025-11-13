@@ -1,18 +1,27 @@
 package com.sistemas.services.impl;
+
 import com.sistemas.dtos.StablishmentDTO;
 import com.sistemas.entities.StablishmentEntity;
 import com.sistemas.repositories.StablishmentRepository;
 import com.sistemas.services.IStablishmentService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class StablishmentServiceImpl implements IStablishmentService {
 
+
     @Autowired
     private StablishmentRepository repository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
 
     private StablishmentDTO mapToDTO(StablishmentEntity entity) {
@@ -35,15 +44,7 @@ public class StablishmentServiceImpl implements IStablishmentService {
                 .build();
     }
 
-    @Override
-    public List<StablishmentDTO> list() {
-        return repository.findAll().stream()
-                .map(this::mapToDTO)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public StablishmentDTO save(StablishmentDTO dto) {
+    public StablishmentDTO create(StablishmentDTO dto) {
         StablishmentEntity entity = repository.save(mapToEntity(dto));
         return mapToDTO(entity);
     }
@@ -57,14 +58,68 @@ public class StablishmentServiceImpl implements IStablishmentService {
     }
 
     @Override
-    public StablishmentDTO findById(Integer id) {
+    public StablishmentDTO getById(Integer id) {
         StablishmentEntity entity = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
         return mapToDTO(entity);
     }
 
     @Override
-    public void deleteById(Integer id) {
-        this.repository.deleteById(id);
+    public List<StablishmentDTO> getAll() {
+        return repository.findAll().stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
     }
+
+    @Override
+    public void delete(Integer id) {
+        repository.deleteById(id);
+    }
+
+
+
+
+    public Page<StablishmentDTO> getAllPaginated(Pageable pageable) {
+        return repository.findAllPaginated(pageable)
+                .map(this::mapToDTO);
+    }
+
+    public Page<StablishmentDTO> getAllPaginated(String name, Pageable pageable) {
+        return repository.search(name, pageable).map(this::mapToDTO);
+    }
+
+
+
+
+
+    /*Listar communas activas*/
+    public List<StablishmentDTO> listAll() {
+        return repository.findAllIncludingDeleted().stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+
+    public List<StablishmentDTO> listActive() {
+        return repository.findAllActive().stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+
+
+    public List<StablishmentDTO> listDeleted() {
+        return repository.findAllDeleted().stream()
+                .map(this::mapToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public void restore(Integer id) {
+        StablishmentEntity entity = repository.findAnyById(id)
+                .orElseThrow(() -> new RuntimeException("Task not found"));
+        entity.setDeletedAt(null);
+        repository.save(entity);
+    }
+
+
 }

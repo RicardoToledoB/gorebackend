@@ -13,7 +13,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -202,10 +205,12 @@ public class RegisterServiceImpl implements IRegisterService {
         return mapToDTO(repository.save(entity));
     }
 
+
+
     @Override
     public RegisterDTO getById(Integer id) {
-        RegisterEntity entity = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Task not found"));
+        RegisterEntity entity = repository.findAnyById(id) // usa el query sin filtro @Where
+                .orElseThrow(() -> new RuntimeException("Registro no encontrado"));
         return mapToDTO(entity);
     }
 
@@ -261,4 +266,28 @@ public class RegisterServiceImpl implements IRegisterService {
         return repository.findAllPaginatedFiltered(term, pageable)
                 .map(this::mapToDTO);
     }
+
+    public List<Map<String, Object>> countRegistersByStablishment() {
+        return repository.countRegistersByStablishment().stream()
+                .map(obj -> {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("stablishment", obj[0]);
+                    map.put("total", obj[1]);
+                    return map;
+                })
+                .collect(Collectors.toList());
+    }
+
+    public Page<RegisterDTO> getActivePaginated(Pageable pageable) {
+        return repository.findAllPaginated(pageable)
+                .map(this::mapToDTO);
+    }
+
+    public Page<RegisterDTO> getDeletedPaginated(String term, Pageable pageable) {
+        return repository.findAllDeletedPaginatedFiltered(term, pageable)
+                .map(this::mapToDTO);
+    }
+
+
+
 }
