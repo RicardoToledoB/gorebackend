@@ -1,4 +1,5 @@
 package com.sistemas.repositories;
+import com.sistemas.entities.RoleEntity;
 import com.sistemas.entities.UserRoleEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -40,4 +41,15 @@ public interface UserRoleRepository extends JpaRepository<UserRoleEntity, Intege
            where ur.user.id = :userId
            """)
     List<String> findRoleNamesByUserId(Integer userId);
+
+
+
+    @Query("""
+       select ur.role
+       from UserRoleEntity ur
+       where ur.user.id = :userId
+         and ur.deletedAt is null
+       """)
+    List<RoleEntity> findRolesByUserId(@Param("userId") Integer userId);
+
 }

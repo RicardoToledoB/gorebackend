@@ -1,26 +1,26 @@
 package com.sistemas.controllers;
+
+import com.sistemas.dtos.RoleDTO;
 import com.sistemas.dtos.UserRoleDTO;
-import com.sistemas.entities.UserEntity;
 import com.sistemas.services.impl.UserRoleServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/users_roles")
 @CrossOrigin("*")
+
+//@PreAuthorize("permitAll()")
 @PreAuthorize("hasAnyRole('ADMIN','ADMINISTRATIVO')")
 public class UserRoleController {
-
 
     @Autowired
     private UserRoleServiceImpl service;
@@ -58,7 +58,6 @@ public class UserRoleController {
         return ResponseEntity.ok(service.getAllPaginated(id, pageable));
     }
 
-    /* SOFT DELETE */
     @GetMapping
     public ResponseEntity<List<UserRoleDTO>> listActive() {
         return ResponseEntity.ok(service.listActive());
@@ -75,7 +74,27 @@ public class UserRoleController {
         return ResponseEntity.noContent().build();
     }
 
+    /* ------------- CUSTOM ENDPOINTS ------------- */
 
+    @PostMapping("/assign")
+    public ResponseEntity<?> assignRole(
+            @RequestParam Integer userId,
+            @RequestParam Integer roleId) {
+        service.assignRole(userId, roleId);
+        return ResponseEntity.ok().build();
+    }
 
+    @DeleteMapping("/remove")
+    public ResponseEntity<?> removeRole(
+            @RequestParam Integer userId,
+            @RequestParam Integer roleId) {
+        service.removeRole(userId, roleId);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<RoleDTO>> getRolesByUser(@PathVariable Integer userId) {
+        return ResponseEntity.ok(service.getRolesByUser(userId));
+    }
 
 }

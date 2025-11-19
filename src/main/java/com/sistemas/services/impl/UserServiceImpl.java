@@ -1,5 +1,4 @@
 package com.sistemas.services.impl;
-
 import com.sistemas.dtos.UserDTO;
 import com.sistemas.entities.UserEntity;
 import com.sistemas.repositories.UserRepository;
@@ -8,11 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -62,7 +59,14 @@ public class UserServiceImpl implements IUserService {
     }
 
     public UserDTO create(UserDTO dto) {
-        UserEntity entity = repository.save(mapToEntity(dto));
+        UserEntity entity = mapToEntity(dto);
+
+        // Encriptamos la contraseña ANTES de guardar
+        if (dto.getPassword() != null && !dto.getPassword().isBlank()) {
+            entity.setPassword(passwordEncoder.encode(dto.getPassword()));
+        }
+
+        entity = repository.save(entity);
         return mapToDTO(entity);
     }
 

@@ -41,10 +41,20 @@ public interface RegisterRepository extends JpaRepository<RegisterEntity, Intege
     @Query("SELECT r.stablishment.name AS name, COUNT(r) AS total FROM RegisterEntity r GROUP BY r.stablishment.name")
     List<Object[]> countRegistersByStablishment();
 
-    @Query(value = "SELECT * FROM registers c WHERE c.deleted_at IS NOT NULL AND " +
-            "(:term IS NULL OR LOWER(c.description_property) LIKE LOWER(CONCAT('%', :term, '%')))",
-            nativeQuery = true)
-    Page<RegisterEntity> findAllDeletedPaginatedFiltered(@Param("term") String term, Pageable pageable);
 
+
+    @Query(
+            value = "SELECT * FROM registers c " +
+                    "WHERE c.deleted_at IS NOT NULL " +
+                    "AND (:term IS NULL OR LOWER(c.description_property) LIKE LOWER(CONCAT('%', :term, '%')))",
+            countQuery = "SELECT COUNT(*) FROM registers c " +
+                    "WHERE c.deleted_at IS NOT NULL " +
+                    "AND (:term IS NULL OR LOWER(c.description_property) LIKE LOWER(CONCAT('%', :term, '%')))",
+            nativeQuery = true
+    )
+    Page<RegisterEntity> findAllDeletedPaginatedFiltered(
+            @Param("term") String term,
+            Pageable pageable
+    );
 
 }
